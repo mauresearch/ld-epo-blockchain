@@ -1,0 +1,69 @@
+function cfg = config_experiment()
+%CONFIG_EXPERIMENT  All experimental settings in one place.
+
+% ---------------- scenarios (m miners, n blocks, instance seed) ---------
+%  S1-S3 : small / medium instances
+%  S4-S6 : large-scale instances
+cfg.scen = struct( ...
+  'name', {'S1', 'S2', 'S3', 'S4', 'S5', 'S6'}, ...
+  'm',    {3,    5,    16,   32,   64,   100}, ...
+  'n',    {32,   47,   86,   200,  500,  1000}, ...
+  'seed', {2026, 2027, 2028, 2029, 2030, 2031});
+% NOTE: algorithm parameters were tuned on DIFFERENT instances
+% (seeds 901-904), never on the test instances above.
+
+% ---------------- instance generator (generate_instance.m) --------------
+cfg.gen = struct('s_min', 5, 's_max', 20, 'v_min', 0.5, 'v_max', 2.0, 'eps', 0.10);
+
+% ---------------- experimental protocol ---------------------------------
+cfg.runs  = 30;          % independent runs per method and scenario
+cfg.maxFE = 30000;       % identical evaluation budget for every method
+cfg.grid  = 101;         % points of the averaged convergence curves
+cfg.milp_time = 600;     % time limit (s) of the exact MILP model
+cfg.milp_scen = 1:6;     % scenarios given to the MILP solver;
+                         % large ones usually stop at the time limit and
+                         % provide a lower bound for the gap
+cfg.alpha = 0.05;        % significance level of the statistical tests
+
+% ---------------- methods ------------------------------------------------
+% role: 'base' = baseline, 'abl' = ablation variant, 'prop' = proposed
+% det : true for deterministic methods (run once)
+N = 30;                                     % common population size
+mk = @(name, fun, prm, role, det) struct('name', name, 'fun', fun, ...
+        'prm', prm, 'role', role, 'det', det);
+cfg.methods = [ ...
+  mk('Random',     'alg_random_search',  struct(),                          'base', false), ...
+  mk('LPT-MCT',    'alg_greedy_mct',     struct(),                          'base', true ), ...
+  mk('Min-Min',    'alg_greedy_minmin',  struct(),                          'base', true ), ...
+  mk('GA',         'alg_ga',             struct('N', N, 'pc', 0.9, 'n_elite', 2), 'base', false), ...
+  mk('PSO',        'alg_pso',            struct('N', N, 'c1', 2, 'c2', 2, 'w_max', 0.9, 'w_min', 0.4), 'base', false), ...
+  mk('GWO',        'alg_gwo',            struct('N', N),                    'base', false), ...
+  mk('WOA',        'alg_woa',            struct('N', N, 'b', 1),            'base', false), ...
+  mk('EPO-basic',  'alg_epo_continuous', struct('N', N, 'M', 2, 'f', 2.5, 'l', 1.75), 'abl', false), ...
+  mk('D-EPO',      'alg_ldepo',          struct('N', N, 'p_LA', 0, 'kappa', 2), 'abl', false), ...
+  mk('LA-LS',      'alg_lals',           struct('N', N, 'p_LA', 1, 'n_LA', 3), 'abl', false), ...
+  mk('LD-EPO-RI',  'alg_ldepo',          struct('N', N, 'p_LA', 1, 'n_LA', 3, 'kappa', 2, 'init', 'random'), 'abl', false), ...
+  mk('LD-EPO',     'alg_ldepo',          struct('N', N, 'p_LA', 1, 'n_LA', 3, 'kappa', 2, 'M', 2), 'prop', false) ];
+% All population methods use init_population(...,'heuristic') unless
+% 'init' is set otherwise (LD-EPO-RI = LD-EPO with random initialisation).
+
+% ---------------- sensitivity analysis -----------------------------------
+cfg.sens.scen  = 3;                 % scenario used (S3)
+cfg.sens.runs  = 20;
+cfg.sens.base  = struct('N', 30, 'p_LA', 1, 'n_LA', 3, 'kappa', 2);
+cfg.sens.grid  = struct( ...
+    'N',     [10 20 30 50 80], ...
+    'p_LA',  [0 0.25 0.5 0.75 1], ...
+    'n_LA',  [1 2 3 5 8], ...
+    'kappa', [1 2 3 5]);
+
+cfg.outdir = 'results';
+cfg.figdir = 'figures';
+
+% quick smoke-test mode:  setenv('EPO_QUICK','1') before running
+if strcmp(getenv('EPO_QUICK'), '1')
+    cfg.runs = 2; cfg.maxFE = 2000; cfg.sens.runs = 2;
+    cfg.milp_time = 20;
+    cfg.outdir = 'results_quick'; cfg.figdir = 'figures_quick';
+end
+end

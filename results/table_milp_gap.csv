@@ -1,0 +1,7 @@
+scenario,MILP_best,MILP_lower_bound,status,LD-EPO_best,LD-EPO_mean,gap_best_%,gap_mean_%,runs_reaching_MILP_best
+S1,104,104,optimal,104,104.000,0.000,0.000,30/30
+S2,129,129,optimal,129,129.000,0.000,0.000,30/30
+S3,42,42,optimal,42,42.067,0.000,0.159,28/30
+S4,51,51,optimal,52,52.000,1.961,1.961,0/30
+S5,69,68,time_limit,70,70.000,2.941,2.941,0/30
+S6,83,82,time_limit,85,85.000,3.659,3.659,0/30

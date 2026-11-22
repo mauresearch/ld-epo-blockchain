@@ -1,0 +1,12 @@
+method,LD-EPO_better(+),no_significant_difference(=),LD-EPO_worse(-)
+Random,6,0,0
+LPT-MCT,6,0,0
+Min-Min,6,0,0
+GA,6,0,0
+PSO,6,0,0
+GWO,6,0,0
+WOA,6,0,0
+EPO-basic,6,0,0
+D-EPO,6,0,0
+LA-LS,1,4,1
+LD-EPO-RI,2,4,0
